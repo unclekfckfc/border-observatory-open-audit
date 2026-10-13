@@ -1,0 +1,117 @@
+{
+  "notice": "本文件是公开审计包的唯一机器可读数字源。README / METRICS / 线上页的数字都应从本文件生成，不得各自手填。",
+  "version": "v0.1",
+  "data_as_of": "2026-10-13",
+  "reproduced_at": "2026-10-14",
+  "source": {
+    "database": "云端 PostgreSQL（applicationId 不公开，属运营信息）",
+    "tables": ["subscribers", "topic_requests", "signal_votes", "signal_events", "delivery_receipts", "signals"],
+    "privacy": "不含任何订户邮箱或个人数据；订户邮箱唯一权威来源是云端 subscribers 表，不进本包"
+  },
+  "metrics": {
+    "external_subscribers": 2,
+    "internal_subscribers": 1,
+    "active_subscribers_total": 3,
+    "unsubscribed_external": 1,
+    "churn_rate": "33%",
+    "real_topic_requests": 0,
+    "topic_requests_total": 9,
+    "signal_votes": 0,
+    "site_sub_ok_events": 0,
+    "external_delivery_receipts": 0,
+    "mail_daily_quota": 50,
+    "self_daily_cap": 45,
+    "subscriber_hard_cap": 45,
+    "c_end_annual_revenue_ceiling_cny": 4500,
+    "signals_total": 70,
+    "signals_id_min": 1,
+    "signals_id_max": 71,
+    "signals_id_note": "id 7 不存在（跳号），故 max-min+1=71 但实际 70 条",
+    "signals_missing_src_url": 39,
+    "signals_deep_verified": 2,
+    "signals_corrected": 1,
+    "category_top4_share": "95.7%",
+    "category_safety_count": 0
+  },
+  "assumptions": {
+    "c_end_price_cny_per_year": 100,
+    "c_end_ceiling_formula": "45 订户 × ¥100/年 = ¥4,500（量级估算；单价为假设，非实测成交价）",
+    "note": "若实际单价不同，天花板随单价线性变化；45 这个订户数上限不变"
+  },
+  "reproduction": [
+    {
+      "metric": "active_subscribers_total",
+      "sql": "SELECT count(*) FROM subscribers WHERE status = 'active'",
+      "result": 3,
+      "reproduced": true
+    },
+    {
+      "metric": "external_subscribers",
+      "sql": "SELECT count(*) FROM subscribers WHERE status = 'active' AND is_internal IS NOT TRUE",
+      "result": 2,
+      "reproduced": true
+    },
+    {
+      "metric": "unsubscribed_external",
+      "sql": "SELECT count(*) FROM subscribers WHERE status = 'unsubscribed'",
+      "result": 1,
+      "reproduced": true
+    },
+    {
+      "metric": "topic_requests_total",
+      "sql": "SELECT count(*) FROM topic_requests",
+      "result": 9,
+      "reproduced": true,
+      "note": "9 条全部为 10-07 当晚自测：8 条写同一个词、contact 全空 → 真实外部点题记为 0"
+    },
+    {
+      "metric": "signal_votes",
+      "sql": "SELECT count(*) FROM signal_votes",
+      "result": 0,
+      "reproduced": true
+    },
+    {
+      "metric": "signals_total",
+      "sql": "SELECT count(*) AS n, min(id) AS min_id, max(id) AS max_id FROM signals",
+      "result": "n=70, min_id=1, max_id=71",
+      "reproduced": true
+    },
+    {
+      "metric": "signals_missing_src_url",
+      "sql": "SELECT count(*) FROM signals WHERE src_url IS NULL OR length(src_url) < 5",
+      "result": 39,
+      "reproduced": true
+    },
+    {
+      "metric": "signals_deep_verified",
+      "sql": "SELECT count(*) FROM signals WHERE deep_verified IS TRUE",
+      "result": 2,
+      "reproduced": true
+    },
+    {
+      "metric": "signals_corrected",
+      "sql": "SELECT count(*) FROM signals WHERE corrected IS TRUE",
+      "result": 1,
+      "reproduced": true
+    },
+    {
+      "metric": "delivery_receipts_total",
+      "sql": "SELECT count(*) FROM delivery_receipts",
+      "result": 2,
+      "reproduced": true,
+      "note": "2 条均属自测地址 → 外部真实回执记为 0"
+    },
+    {
+      "metric": "site_sub_ok_events",
+      "sql": "（不可复现）signal_events 表按设计只进不出：anon 仅 INSERT、无 SELECT 策略",
+      "result": 0,
+      "reproduced": false,
+      "note": "数字来自 2026-10-13 实测快照（163 行埋点中 sub_ok / sub_submit / sub_dup 全为 0）。该表刻意不可读回，故外部无法自行复现——这是隐私设计的代价，如实标注"
+    }
+  ],
+  "audit_scope": {
+    "signals": "id 1–71 共 70 条（id 7 跳号），截至 2026-10-13",
+    "excluded": "订户身份与邮箱（不入包）、signal_events 明细（按设计不可读）",
+    "full_ledger": "线上核验台账列出全部条目的章位、原文链、摘录、可达性"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$comment": "CTL v0.1 机器可读 schema（草案）。这是 STANDARD.md 的配套文件，供程序化实现使用。人话与规则解释见 STANDARD.md。",
+  "ctl_version": "0.1",
+  "updated": "2026-10-14",
+  "license": "CC BY 4.0（署名）— 见 LICENSE.md",
+  "principle": "等级（L0–L3，证据链完整度）与章位（stamp，口径状态）是两条正交维度，不得混用。",
+
+  "fields": {
+    "claim":        { "type": "string",  "required": true,  "desc": "陈述原文，不转述" },
+    "src_url":      { "type": "string",  "required": true,  "desc": "可点开的原始链接；无则显式标『未留原文链』，不许留空" },
+    "src_quote":    { "type": "string",  "required": false, "desc": "逐字摘录；无则标『摘录待补』，不许用转述冒充" },
+    "src_count":    { "type": "integer", "required": true,  "desc": "真正独立的信源数（同一通稿多家转载 = 1）", "min": 0 },
+    "src_reach":    { "type": "string",  "enum": ["direct", "proxy", "unreachable"], "desc": "境外或打不开的标 proxy，不假装可达" },
+    "stamp":        { "type": "string",  "enum": ["ok", "warn"], "desc": "章位：ok=官方/一手口径已确认；warn=口径待补录" },
+    "stamp_basis":  { "type": "string",  "required": true,  "desc": "章位依据，必须写成人话；禁止写『综合判断』" },
+    "deep_check":    { "type": "boolean", "desc": "是否做过独立信源交叉核验（动作）。true 不代表达标" },
+    "deep_qualified": { "type": "boolean", "desc": "是否达到 L3 门槛（src_count >= 2 且有 deep_srcs）。与 deep_check 分离" },
+    "deep_srcs":    { "type": "array",   "desc": "独立信源清单（数组，不是数字）" },
+    "corrected":    { "type": "boolean", "required": true,  "desc": "是否已更正，必须可机读" },
+    "correction_note": { "type": "string", "desc": "更正说明，含改前原值；corrected=true 时必填" },
+    "ai_generated": {
+      "type": "object",
+      "desc": "哪个环节由 AI 参与，分环节标注；禁止一处标注、另一处抹去",
+      "properties": {
+        "generate": { "type": "string", "desc": "内容生成环节" },
+        "verify":   { "type": "string", "desc": "核验环节" },
+        "comment":  { "type": "string", "desc": "评论环节" }
+      }
+    }
+  },
+
+  "levels": [
+    { "level": "L0", "name": "无源",   "condition": "无 src_url",                                    "human": "这条没法核，别引用" },
+    { "level": "L1", "name": "有链",   "condition": "有 src_url，无 src_quote；或 stamp=warn 待补录", "human": "能看，但摘录或口径待补" },
+    { "level": "L2", "name": "可引用", "condition": "有 src_url + src_quote + stamp=ok",              "human": "可以引用" },
+    { "level": "L3", "name": "深核",   "condition": "L2 + src_count >= 2 + deep_qualified=true",      "human": "已做独立交叉核验" }
+  ],
+
+  "rules": [
+    { "id": "R1", "text": "同一通稿多家转载 = 1 个来源。判定方法：核心引语逐字一致即视为转载，计 1。", "origin": "真教训：曾把 4 家转载误判为 4 个独立源（见 CORRECTIONS.md 更正 01）" },
+    { "id": "R2", "text": "更正必须同时满足『可机读（corrected=true + correction_note 含改前原值）』与『用户可见（前端渲染更正痕迹）』。只写进自己文档的更正不算更正。", "origin": "真教训：CORRECTIONS.md 更正 01 的后续发现" },
+    { "id": "R3", "text": "AI 参与必须分环节标注，且禁止一处标注、另一处抹去。", "origin": "真教训：CORRECTIONS.md 更正 03" },
+    { "id": "R4", "text": "层位（一手性）与章位（口径）解耦：聚合渠道转载的官方事件，照样可盖 ok 章，但必须回填官方原文链。", "origin": "真教训：CORRECTIONS.md 更正 02" },
+    { "id": "R5", "text": "填充率 ≠ 可用性：有链接不等于打得开；不得用填充率冒充可用性。", "origin": "项目通则" }
+  ],
+
+  "self_assessment": {
+    "comment": "我们自己未完全做到本 schema。逐项对照见 STANDARD.md 第九节。",
+    "not_implemented_in_our_db": ["src_count（无此字段）", "claim（无此字段，与 hook 混用）", "stamp_basis（用 stamp_text 近似）", "ai_generated（无此字段，AI 标识仅存在于 foot 文本中，不可机读）"]
+  }
+}

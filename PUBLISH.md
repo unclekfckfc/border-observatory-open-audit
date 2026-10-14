@@ -36,13 +36,28 @@ git push -u origin main
 
 ---
 
-## 方式二：授权我来做
+## 方式二：你认证，我推送（当前推荐路径）
 
-如果你希望我代为推送，需要：
-1. 安装 `gh` CLI，或
-2. 提供一个有 `public_repo` 权限的 GitHub token（**注意：token 不要写进任何仓库文件**）
+**已经做好的部分（2026-10-14）**：
 
-拿到授权后我可以执行 `gh repo create --public` 并推送。
+- ✅ GitHub CLI **2.102.0 已安装**（winget）。可执行文件：`C:\Program Files\GitHub CLI\gh.exe`（安装后 PATH 需**新开终端**才生效，所以命令用完整路径）
+- ✅ 本地发布仓库已就绪：`C:\Users\Kc\oa-publish` —— 12 个文件，commit `4adfe93`，branch `main`（英文路径，避开中文路径坑）
+
+**只差两步，且必须由你做**（涉及你的 GitHub 账号，我不代持）：
+
+```bash
+# 第 1 步 · 登录（会打开浏览器，按提示完成）
+"C:\Program Files\GitHub CLI\gh.exe" auth login
+
+# 第 2 步 · 建公开仓库并推送
+cd C:\Users\Kc\oa-publish
+"C:\Program Files\GitHub CLI\gh.exe" repo create border-observatory-open-audit --public --source=. --push
+```
+
+也可以第 1 步完成后告诉我，第 2 步我来跑。
+
+> ⚠️ **不要把 GitHub token 贴进任何仓库文件**，也不要交给 AI 代为写入。
+> 仓库描述建议写：*我们把自己怎么核验的，全部公开了，并且把它抽象成任何人都能用的标准。欢迎来找错。*
 
 ---
 

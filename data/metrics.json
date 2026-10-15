@@ -1,11 +1,12 @@
 {
   "notice": "本文件是公开审计包的唯一机器可读数字源。README / METRICS / 线上页的数字都应从本文件生成，不得各自手填。",
-  "version": "v0.1",
-  "data_as_of": "2026-10-13",
-  "reproduced_at": "2026-10-14",
+  "version": "v0.2",
+  "data_as_of": "2026-10-15",
+  "reproduced_at": "2026-10-15",
+  "version_note": "v0.2（2026-10-15）：按当日回库实测更新全部数字。较 v0.1 的变更——signals 70→79、id_max 71→80、safety 0→2（10-15 归类回溯纠正后）、top4 95.7%→84.8%、delivery_receipts 2→4（其中外部 2）、signal_events 163→204；新增 topic_requests 主题分布、filter_requests、signal_events 分 kind 明细；更正 45/¥4,500 的定性（当前通道约束，非产品天花板）；修正 signal_events 可读性表述与 sub_ok/sub_submit/sub_dup 三个 kind 不存在的事实。",
   "source": {
     "database": "云端 PostgreSQL（applicationId 不公开，属运营信息）",
-    "tables": ["subscribers", "topic_requests", "signal_votes", "signal_events", "delivery_receipts", "signals"],
+    "tables": ["subscribers", "topic_requests", "signal_votes", "signal_events", "delivery_receipts", "signals", "filter_requests"],
     "privacy": "不含任何订户邮箱或个人数据；订户邮箱唯一权威来源是云端 subscribers 表，不进本包"
   },
   "metrics": {
@@ -14,55 +15,61 @@
     "active_subscribers_total": 3,
     "unsubscribed_external": 1,
     "churn_rate": "33%",
+    "churn_rate_caliber": "口径：退订数 1 ÷ 当前在订数 3 = 33%。若以曾订阅总数（在订 3 + 已退订 1 = 4）为分母则为 25%。两种口径均披露，不做单一取值。",
     "real_topic_requests": 0,
     "topic_requests_total": 9,
+    "topic_requests_empty_contact": 9,
+    "topic_requests_distinct_topic": 3,
+    "topic_requests_topic_breakdown": "AI芯片 7 条 / 天气 1 条 / ai游戏，设备。1 条（v0.1 及 METRICS 旧版写「8 条同一个词」，实测为 7 条，已更正）",
+    "filter_requests": 1,
     "signal_votes": 0,
-    "site_sub_ok_events": 0,
-    "external_delivery_receipts": 0,
+    "site_sub_ok_events": null,
+    "site_sub_ok_events_note": "该指标此前记为 0，依据是 sub_ok / sub_submit / sub_dup 三个 kind 全为 0。但实测 signal_events 表中**这三个 kind 根本不存在**（2026-10-15 分 kind 聚合确认），故该指标此前无有效依据，现置为 null 并说明，不再对外报 0。",
+    "signal_events_total": 204,
+    "signal_events_sub_invalid": 7,
+    "signal_events_kinds": "view 157 / view_switch 22 / filter_on 10 / click_src 7 / sub_invalid 7 / e2e_sec_audit 1（合计 204，区间 2026-10-11 16:21 → 2026-10-15 07:11）",
+    "delivery_receipts_total": 4,
+    "delivery_receipts_internal": 2,
+    "external_delivery_receipts": 2,
     "mail_daily_quota": 50,
     "self_daily_cap": 45,
     "subscriber_hard_cap": 45,
+    "subscriber_hard_cap_note": "45 = 当前邮件通道（Agent Mail 50 封/日 − 5 封缓冲）下的上限，属**当前工具约束**，不是产品天花板：换自建发信服务或第三方 ESP 即可突破（见 CORRECTIONS.md 更正 05）。v0.1 及旧版 METRICS/README 曾据此论证「C 端数学上不可能盈利」，该论证已于 2026-10-15 更正撤回。",
     "c_end_annual_revenue_ceiling_cny": 4500,
-    "signals_total": 70,
+    "c_end_annual_revenue_ceiling_note": "= 45 订户 × ¥100/年，仅在当前通道约束下成立。单价 ¥100/年为假设值，非实测成交价。",
+    "signals_total": 79,
     "signals_id_min": 1,
-    "signals_id_max": 71,
-    "signals_id_note": "id 7 不存在（跳号），故 max-min+1=71 但实际 70 条",
+    "signals_id_max": 80,
+    "signals_id_note": "id 7 不存在（跳号），故 max-min+1=80 但实际 79 条",
     "signals_missing_src_url": 39,
+    "signals_missing_src_url_note": "全部为 id ≤ 41。10-08 起新增条目 100% 带链；id ≤ 41 已冻结不再补录，见 portal/ledger.html 公开声明",
     "signals_deep_verified": 2,
     "signals_corrected": 1,
-    "category_top4_share": "95.7%",
-    "category_safety_count": 0
+    "category_top4_share": "84.8%",
+    "category_top4_share_note": "前四类 = corp 20 + infra 17 + oss 16 + cap 14 = 67，67 ÷ 79 = 84.8%",
+    "category_safety_count": 2,
+    "category_full_distribution": "corp 20 / infra 17 / oss 16 / cap 14 / policy 5 / research 3 / app 2 / safety 2（合计 79）",
+    "category_safety_note": "v0.1 记 safety=0。2026-10-15 归类回溯纠正将 id 60 / 66 由 corp 改判 safety（与事故库 INC-002 / INC-001 交叉印证），故现为 2。此前「safety 全库 0 = 没产出事故」的推论不成立——实为至少 8 条 policy/safety 被错标 corp 且从未回溯。"
   },
   "assumptions": {
     "c_end_price_cny_per_year": 100,
     "c_end_ceiling_formula": "45 订户 × ¥100/年 = ¥4,500（量级估算；单价为假设，非实测成交价）",
-    "note": "若实际单价不同，天花板随单价线性变化；45 这个订户数上限不变"
+    "channel_constraint": "45 与 ¥4,500 均为「当前邮件通道约束」下的上限，不是市场规模上限、也不是产品能力的上限（更正 05）。换通道即失效。",
+    "note": "若实际单价不同，天花板随单价线性变化；45 这个订户数上限在当前通道下不变"
   },
   "reproduction": [
     {
       "metric": "active_subscribers_total",
-      "sql": "SELECT count(*) FROM subscribers WHERE status = 'active'",
-      "result": 3,
-      "reproduced": true
-    },
-    {
-      "metric": "external_subscribers",
-      "sql": "SELECT count(*) FROM subscribers WHERE status = 'active' AND is_internal IS NOT TRUE",
-      "result": 2,
-      "reproduced": true
-    },
-    {
-      "metric": "unsubscribed_external",
-      "sql": "SELECT count(*) FROM subscribers WHERE status = 'unsubscribed'",
-      "result": 1,
+      "sql": "SELECT status, is_internal, count(*) FROM subscribers GROUP BY status, is_internal",
+      "result": "active+internal 1 / active+external 2 / unsubscribed+external 1",
       "reproduced": true
     },
     {
       "metric": "topic_requests_total",
-      "sql": "SELECT count(*) FROM topic_requests",
-      "result": 9,
+      "sql": "SELECT topic, count(*) FROM topic_requests GROUP BY topic ORDER BY count(*) DESC",
+      "result": "AI芯片 7 / 天气 1 / ai游戏，设备。1（合计 9）",
       "reproduced": true,
-      "note": "9 条全部为 10-07 当晚自测：8 条写同一个词、contact 全空 → 真实外部点题记为 0"
+      "note": "9 条 contact 全部为空（实测 9/9），无法回联 → 真实外部点题记为 0"
     },
     {
       "metric": "signal_votes",
@@ -73,7 +80,7 @@
     {
       "metric": "signals_total",
       "sql": "SELECT count(*) AS n, min(id) AS min_id, max(id) AS max_id FROM signals",
-      "result": "n=70, min_id=1, max_id=71",
+      "result": "n=79, min_id=1, max_id=80",
       "reproduced": true
     },
     {
@@ -83,35 +90,35 @@
       "reproduced": true
     },
     {
-      "metric": "signals_deep_verified",
-      "sql": "SELECT count(*) FROM signals WHERE deep_verified IS TRUE",
-      "result": 2,
+      "metric": "signals_deep_verified / corrected",
+      "sql": "SELECT count(*) FILTER (WHERE deep_verified IS TRUE) AS deep_verified, count(*) FILTER (WHERE corrected IS TRUE) AS corrected FROM signals",
+      "result": "deep_verified=2, corrected=1",
       "reproduced": true
     },
     {
-      "metric": "signals_corrected",
-      "sql": "SELECT count(*) FROM signals WHERE corrected IS TRUE",
-      "result": 1,
+      "metric": "category_full_distribution",
+      "sql": "SELECT cat, count(*) AS c FROM signals GROUP BY cat ORDER BY c DESC",
+      "result": "corp 20 / infra 17 / oss 16 / cap 14 / policy 5 / research 3 / app 2 / safety 2",
       "reproduced": true
     },
     {
       "metric": "delivery_receipts_total",
       "sql": "SELECT count(*) FROM delivery_receipts",
-      "result": 2,
+      "result": 4,
       "reproduced": true,
-      "note": "2 条均属自测地址 → 外部真实回执记为 0"
+      "note": "其中 2 条投给运营者自测地址、2 条投给外部地址；涉及 3 个不同收件地址；末条 created_at = 2026-10-14 10:03。外部真实回执现为 2（v0.1 记为 0）"
     },
     {
-      "metric": "site_sub_ok_events",
-      "sql": "（不可复现）signal_events 表按设计只进不出：anon 仅 INSERT、无 SELECT 策略",
-      "result": 0,
-      "reproduced": false,
-      "note": "数字来自 2026-10-13 实测快照（163 行埋点中 sub_ok / sub_submit / sub_dup 全为 0）。该表刻意不可读回，故外部无法自行复现——这是隐私设计的代价，如实标注"
+      "metric": "signal_events_by_kind",
+      "sql": "SELECT kind, count(*) AS c FROM signal_events GROUP BY kind ORDER BY c DESC",
+      "result": "view 157 / view_switch 22 / filter_on 10 / click_src 7 / sub_invalid 7 / e2e_sec_audit 1（合计 204）",
+      "reproduced": true,
+      "note": "可读性更正：旧文档称该表『按设计只进不出，连我们自己也不读回』——不准确。准确表述为 **anon 角色不可读回（无 SELECT 策略）；运营者角色可读**。2026-10-15 通过服务端角色读回 204 行。另：sub_ok / sub_submit / sub_dup 三个 kind 在表中不存在，旧文档以它们为据声明『站点订阅成功 0』属无效依据；实际存在且从未披露的是 **7 条 sub_invalid**（订阅尝试失败）。204 条事件无法归因真人——已知写入源（自测、巡检、E2E 探针）未排除，故不对真人作正面断言。"
     }
   ],
   "audit_scope": {
-    "signals": "id 1–71 共 70 条（id 7 跳号），截至 2026-10-13",
-    "excluded": "订户身份与邮箱（不入包）、signal_events 明细（按设计不可读）",
+    "signals": "id 1–80 共 79 条（id 7 跳号），截至 2026-10-15",
+    "excluded": "订户身份与邮箱（不入包）、signal_events 逐条明细（anon 不可读回；运营者角色可读，但本包只公开分 kind 聚合计数，不公开明细）",
     "full_ledger": "线上核验台账列出全部条目的章位、原文链、摘录、可达性"
   }
 }

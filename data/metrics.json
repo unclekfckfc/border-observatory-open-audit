@@ -107,7 +107,7 @@
     "category_top4_share_note": "前四类 = policy 37 + corp 32 + oss 32 + research 32 = 133，133 ÷ 217 = 61.3%。由 mk_metrics_patch 重算。",
     "category_safety_count": 30,
     "category_full_distribution": "policy 37 / corp 32 / oss 32 / research 32 / safety 30 / cap 21 / infra 21 / app 12（合计 217）",
-    "category_safety_note": "沿革：v0.3 记 4 → v0.6 期 11 → v0.7 现 30（11-09 后每日构建累积 + 归类口径演进，本版无法区分二者贡献）。id 21 / 27 / 35 / 37 的归类仍在裁定中，不因本版数字上升视为已结案〔待核〕。"
+    "category_safety_note": "沿革：v0.3 记 4 → v0.6 期 11 → v0.7 现 30（11-09 后每日构建累积 + 归类口径演进）。id 21/27/35/37 已于 2026-11-11 裁定结案：21/35 改判 safety、27/37 改判 policy（4 条均为 corp 误标；冻结口径裁决见 CORRECTIONS 更正 15）。改判 11-11 晚入库，本计数随 11-12 晨构建滚动 30→32。"
   },
   "assumptions": {
     "c_end_price_cny_per_year": 100,

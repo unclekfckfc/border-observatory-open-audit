@@ -48,6 +48,7 @@ import argparse
 import datetime as _dt
 import json
 import os
+import re
 import sys
 
 # ---------------------------------------------------------------------------
@@ -69,11 +70,12 @@ SCALAR_SQL = [
     },
     {
         "id": "topic_requests",
-        "sql": "SELECT count(*) AS topic_requests_total, count(*) FILTER (WHERE contact IS NULL OR length(contact) < 3) AS topic_requests_empty_contact, count(DISTINCT topic) AS topic_requests_distinct_topic FROM topic_requests",
+        "sql": "SELECT count(*) AS topic_requests_total, count(*) FILTER (WHERE contact IS NULL OR length(contact) < 3) AS topic_requests_empty_contact, count(DISTINCT topic) AS topic_requests_distinct_topic, count(*) FILTER (WHERE status='pending') AS real_topic_requests FROM topic_requests",
         "keys": [
             "topic_requests_total",
             "topic_requests_empty_contact",
             "topic_requests_distinct_topic",
+            "real_topic_requests",
         ],
     },
     {
@@ -139,6 +141,45 @@ def _load_json(path):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+
+def derive_signals_metrics(meta):
+    """从 signals.js 的 meta 重算 signals 组指标 —— **全项目唯一推导出处**。
+
+    巡检（本文件比对）与构建（build_guard.py）都调用本函数，
+    不存在"文档一套算法、脚本另一套"的可能。
+
+    2026-10-27 扩容：此前只算 5 项，signals_with_url / signals_url_rate /
+    分类分布 / 深核·更正·补录 长期无人校验，导致审计页出现
+    "总数 135、带链 87、url_rate 69.0%" 这类自相矛盾。
+    现在凡可推导的键全部返回，build_guard 另有一条断言禁止"新键逃逸"。
+    """
+    if not meta:
+        return {}
+
+    cats = {k: int(v) for k, v in (meta.get("cat_counts") or {}).items()}
+    total = int(meta.get("total") or 0)
+    with_url = int(meta.get("with_url") or 0)
+
+    out = {
+        "signals_total": total,
+        "signals_id_min": int(meta.get("id_min") or 0),
+        "signals_id_max": int(meta.get("id_max") or 0),
+        "signals_with_url": with_url,
+        "signals_missing_src_url": total - with_url,
+        "signals_deep_verified": len(meta.get("deep_ids") or []),
+        "signals_corrected": len(meta.get("corrected_ids") or []),
+        "signals_backfill": len(meta.get("backfill_ids") or []),
+        "category_safety_count": cats.get("safety", 0),
+    }
+    if total:
+        out["signals_url_rate"] = "%.1f%%" % (with_url * 100.0 / total)
+        top4 = sum(sorted(cats.values(), reverse=True)[:4])
+        out["category_top4_share"] = "%.1f%%" % (top4 * 100.0 / total)
+        out["category_full_distribution"] = (
+            " / ".join("%s %d" % (k, v) for k, v in
+                       sorted(cats.items(), key=lambda kv: (-kv[1], kv[0])))
+            + "（合计 %d）" % total)
+    return out
 
 def _derive_from_rows(rows):
     """从多行结果派生出可与 metrics.json 比对的指标。"""
@@ -214,10 +255,16 @@ def run_check(metrics_path, actual_path, max_age_days):
         except ValueError:
             stale = (str(dao), None)
 
+    # 分组基准日一致性：snapshot_date（信号组）不得早于 data_as_of（整包最旧组）
+    snap = metrics.get("snapshot_date")
+    snap_conflict = None
+    if snap and dao and str(snap) < str(dao):
+        snap_conflict = (str(dao), str(snap))
+
     print("=" * 68)
     print("check_metrics · 承诺层数字漂移核对（只读）")
-    print("  期望源 : %s  (version %s, data_as_of %s)"
-          % (os.path.basename(metrics_path), metrics.get("version"), dao))
+    print("  期望源 : %s  (version %s, data_as_of %s, snapshot_date %s)"
+          % (os.path.basename(metrics_path), metrics.get("version"), dao, snap or "—"))
     print("  实测源 : %s" % os.path.basename(actual_path))
     print("  已核对 : %d 项" % len(keys))
     print("=" * 68)
@@ -236,10 +283,17 @@ def run_check(metrics_path, actual_path, max_age_days):
             print("  [STALE] data_as_of=%s，距今 %d 天（阈值 %d 天）"
                   % (dao_s, age, max_age_days))
 
+    if snap_conflict:
+        print("  [CALIBER] snapshot_date=%s 早于 data_as_of=%s：分组基准日自相矛盾"
+              % (snap_conflict[1], snap_conflict[0]))
+
     print("-" * 68)
     if drift:
         print("结论：发现 %d 项漂移 → 公开文档数字已与云端不一致，需人工修 metrics.json"
               % len(drift))
+        return 1
+    if snap_conflict:
+        print("结论：数字一致，但分组基准日矛盾，需先修 snapshot_date / data_as_of")
         return 1
     if stale:
         print("结论：数字一致，但数据基准日已过期，需重新回库复现")
@@ -261,9 +315,26 @@ def main():
     ap.add_argument("--actual", help="实测结果 JSON 文件路径")
     ap.add_argument("--metrics", default=default_metrics,
                     help="metrics.json 路径（默认与本脚本同目录的 data/metrics.json）")
+    ap.add_argument("--emit-signals-metrics", metavar="SIGNALS_JS",
+                    help="从 signals.js 的 meta 重算 signals 组指标，输出 JSON 后退出")
     ap.add_argument("--max-age-days", type=int, default=3,
                     help="data_as_of 距今天数的告警阈值，默认 3")
     args = ap.parse_args()
+
+    if args.emit_signals_metrics:
+        try:
+            with open(args.emit_signals_metrics, "r", encoding="utf-8") as f:
+                raw = f.read()
+            m = re.search(r"window\.OBS\s*=\s*(\{[\s\S]*\})\s*;?\s*$", raw)
+            if not m:
+                print("未找到 window.OBS 对象", file=sys.stderr)
+                return 2
+            meta = json.loads(m.group(1))["meta"]
+        except (OSError, json.JSONDecodeError, KeyError) as e:
+            print("读取 signals.js 失败：%s" % e, file=sys.stderr)
+            return 2
+        print(json.dumps(derive_signals_metrics(meta), ensure_ascii=False, indent=2))
+        return 0
 
     if args.emit_sql:
         for item in SCALAR_SQL:

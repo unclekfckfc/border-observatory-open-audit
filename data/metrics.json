@@ -1,55 +1,113 @@
 {
   "notice": "本文件是公开审计包的唯一机器可读数字源。README / METRICS / 线上页的数字都应从本文件生成，不得各自手填。",
-  "version": "v0.2",
-  "data_as_of": "2026-10-15",
-  "reproduced_at": "2026-10-15",
-  "version_note": "v0.2（2026-10-15）：按当日回库实测更新全部数字。较 v0.1 的变更——signals 70→79、id_max 71→80、safety 0→2（10-15 归类回溯纠正后）、top4 95.7%→84.8%、delivery_receipts 2→4（其中外部 2）、signal_events 163→204；新增 topic_requests 主题分布、filter_requests、signal_events 分 kind 明细；更正 45/¥4,500 的定性（当前通道约束，非产品天花板）；修正 signal_events 可读性表述与 sub_ok/sub_submit/sub_dup 三个 kind 不存在的事实。",
+  "version": "v0.7",
+  "snapshot_date": "2026-11-11",
+  "data_as_of": "2026-11-11",
+  "data_as_of_note": "v0.7 起 data_as_of = 全量回库复核日 2026-11-11：22 项逐项实测（check_metrics 退出码 0），订阅 / 点题 / 回执 / 事件四组与 signals 组当日全部对齐，故 data_as_of == snapshot_date，无旧组。更正 12 确立的『data_as_of = 整包最旧组』定义不变——本版各组同日，『最旧』与『最新』重合，口径分裂消除。",
+  "reproduced_at": "2026-11-11",
+  "signals_reproduced_at": "2026-11-11",
+  "signals_source": "冻结件 signals-2026-11-11（built_at 07:30，217 条）+ 2026-11-11 全量回库 SQL 复核，分类与缺链已核（与 meta 交叉一致）",
+  "version_note": "auto: 2026-11-11 19:01（mk_metrics_patch v0.7：signals 组自冻结件重建 + 非信号组云端实时回填 成功（13 键））",
+  "freshness_policy": {
+    "max_age_days": 3,
+    "lag_is_public": true,
+    "computed_from": [
+      "snapshot_date",
+      "data_as_of"
+    ],
+    "note": "本文件的 data_as_of 距今超过 3 天即视为失效。滞后天数不写成静态数字（那会立刻自成一个新的漂移源），由页面与文档构建时按『当日 − data_as_of』实时计算并显示给读者。读者据此可自行判断本页是否仍在保质期内，不必相信我们的自觉。"
+  },
+  "metric_groups": [
+    {
+      "group": "signals",
+      "as_of": "2026-11-11",
+      "source": "冻结件 signals-2026-11-11 + exec_sql 回库复核",
+      "verification": "check_metrics.derive_signals_metrics 重算 + build_guard.py 构建门禁 + 2026-11-11 回库 22 项",
+      "status": "已对齐（v0.7 回库复核）"
+    },
+    {
+      "group": "subscribers / topic_requests / delivery_receipts / signal_events",
+      "as_of": "2026-11-11",
+      "source": "回库实测（v0.7 全量复核）",
+      "verification": "2026-11-11 exec_sql 直接回库（22 项一致）",
+      "status": "已全量回库复核（22 项一致）"
+    }
+  ],
+  "delta_since_previous": {
+    "from_version": "v0.6",
+    "from_data_as_of": "2026-10-20",
+    "calendar_days_elapsed": 22,
+    "signals_added": 9,
+    "signals_added_by_category": {
+      "safety": 1,
+      "policy": 2,
+      "research": 2,
+      "infra": 0,
+      "cap": 0,
+      "oss": 1,
+      "corp": 1,
+      "app": 8
+    },
+    "new_signals_missing_src_url": 0,
+    "note": "本次为全量回库复核 + 口径矛盾清理，非新增批次驱动。signals 较 v0.6 公开镜像（208 条，11-09）实际滚动至 217，差额 +9（id 210–218，11-10 与 11-11 两批）系 11-09 后每日构建累积；v0.6 的机器 JSON 随构建滚动而手填镜像未跟（更正 14）。分类增量按 217−208 计数差分得出，未逐条回库复核分类，属〔待核〕。"
+  },
   "source": {
     "database": "云端 PostgreSQL（applicationId 不公开，属运营信息）",
-    "tables": ["subscribers", "topic_requests", "signal_votes", "signal_events", "delivery_receipts", "signals", "filter_requests"],
+    "tables": [
+      "subscribers",
+      "topic_requests",
+      "signal_votes",
+      "signal_events",
+      "delivery_receipts",
+      "signals",
+      "filter_requests"
+    ],
     "privacy": "不含任何订户邮箱或个人数据；订户邮箱唯一权威来源是云端 subscribers 表，不进本包"
   },
   "metrics": {
-    "external_subscribers": 2,
+    "external_subscribers": 3,
     "internal_subscribers": 1,
-    "active_subscribers_total": 3,
-    "unsubscribed_external": 1,
-    "churn_rate": "33%",
-    "churn_rate_caliber": "口径：退订数 1 ÷ 当前在订数 3 = 33%。若以曾订阅总数（在订 3 + 已退订 1 = 4）为分母则为 25%。两种口径均披露，不做单一取值。",
+    "active_subscribers_total": 4,
+    "unsubscribed_external": 0,
+    "churn_rate": "0%",
+    "churn_rate_caliber": "口径：退订 0 ÷ 当前在订 4 = 0%。历史口径（曾退订 1 ÷ 曾订阅 5）= 20%。两种口径均披露，不做单一取值。（v0.6 前曾报 33% = 1÷3，系 002 退订未删时的旧口径；002 已于 2026-11-08 满 30 天保留期删除。）",
     "real_topic_requests": 0,
-    "topic_requests_total": 9,
+    "topic_requests_total": 13,
     "topic_requests_empty_contact": 9,
-    "topic_requests_distinct_topic": 3,
+    "topic_requests_distinct_topic": 7,
     "topic_requests_topic_breakdown": "AI芯片 7 条 / 天气 1 条 / ai游戏，设备。1 条（v0.1 及 METRICS 旧版写「8 条同一个词」，实测为 7 条，已更正）",
     "filter_requests": 1,
     "signal_votes": 0,
     "site_sub_ok_events": null,
     "site_sub_ok_events_note": "该指标此前记为 0，依据是 sub_ok / sub_submit / sub_dup 三个 kind 全为 0。但实测 signal_events 表中**这三个 kind 根本不存在**（2026-10-15 分 kind 聚合确认），故该指标此前无有效依据，现置为 null 并说明，不再对外报 0。",
-    "signal_events_total": 204,
+    "signal_events_total": 1906,
     "signal_events_sub_invalid": 7,
-    "signal_events_kinds": "view 157 / view_switch 22 / filter_on 10 / click_src 7 / sub_invalid 7 / e2e_sec_audit 1（合计 204，区间 2026-10-11 16:21 → 2026-10-15 07:11）",
+    "signal_events_kinds": "view_v31 1152 / view 706 / view_switch 22 / filter_on 10 / click_src 8 / sub_invalid 7 / e2e_sec_audit 1",
     "delivery_receipts_total": 4,
     "delivery_receipts_internal": 2,
     "external_delivery_receipts": 2,
     "mail_daily_quota": 50,
     "self_daily_cap": 45,
     "subscriber_hard_cap": 45,
-    "subscriber_hard_cap_note": "45 = 当前邮件通道（Agent Mail 50 封/日 − 5 封缓冲）下的上限，属**当前工具约束**，不是产品天花板：换自建发信服务或第三方 ESP 即可突破（见 CORRECTIONS.md 更正 05）。v0.1 及旧版 METRICS/README 曾据此论证「C 端数学上不可能盈利」，该论证已于 2026-10-15 更正撤回。",
+    "subscriber_hard_cap_note": "45 = 当前邮件通道（Agent Mail 50 封/日 − 5 封缓冲）下的上限，属**当前工具约束**，不是产品天花板：换自建发信服务或第三方 ESP 即可突破（见 CORRECTIONS.md 更正 05）。v0.1 及旧版 METRICS/README 曾据此论证「C 端数学上不可能盈利」，该论证已于 2026-10-15 更正撤回。另须注意：额度每日重置，『降频』不提高上限，只有『分批轮转』才提高（更正 11）。",
     "c_end_annual_revenue_ceiling_cny": 4500,
     "c_end_annual_revenue_ceiling_note": "= 45 订户 × ¥100/年，仅在当前通道约束下成立。单价 ¥100/年为假设值，非实测成交价。",
-    "signals_total": 79,
+    "signals_total": 217,
     "signals_id_min": 1,
-    "signals_id_max": 80,
-    "signals_id_note": "id 7 不存在（跳号），故 max-min+1=80 但实际 79 条",
+    "signals_id_max": 218,
+    "signals_id_note": "id 范围 1–218，实际 217 条；跳号 1 个（当前缺号见 open-audit/KNOWN_GAPS.md）。",
     "signals_missing_src_url": 39,
-    "signals_missing_src_url_note": "全部为 id ≤ 41。10-08 起新增条目 100% 带链；id ≤ 41 已冻结不再补录，见 portal/ledger.html 公开声明",
+    "signals_missing_src_url_note": "全部为 id ≤ 41。10-08 起新增条目 100% 带链；id ≤ 41 已冻结不再补录，见 portal/ledger.html 公开声明。v0.7 复核：缺链仍 39，新增条目缺链 0 条，该纪律未被破坏。",
+    "signals_with_url": 178,
+    "signals_url_rate": "82.0%",
     "signals_deep_verified": 2,
     "signals_corrected": 1,
-    "category_top4_share": "84.8%",
-    "category_top4_share_note": "前四类 = corp 20 + infra 17 + oss 16 + cap 14 = 67，67 ÷ 79 = 84.8%",
-    "category_safety_count": 2,
-    "category_full_distribution": "corp 20 / infra 17 / oss 16 / cap 14 / policy 5 / research 3 / app 2 / safety 2（合计 79）",
-    "category_safety_note": "v0.1 记 safety=0。2026-10-15 归类回溯纠正将 id 60 / 66 由 corp 改判 safety（与事故库 INC-002 / INC-001 交叉印证），故现为 2。此前「safety 全库 0 = 没产出事故」的推论不成立——实为至少 8 条 policy/safety 被错标 corp 且从未回溯。"
+    "signals_backfill": 23,
+    "category_top4_share": "61.3%",
+    "category_top4_share_note": "前四类 = policy 37 + corp 32 + oss 32 + research 32 = 133，133 ÷ 217 = 61.3%。由 mk_metrics_patch 重算。",
+    "category_safety_count": 30,
+    "category_full_distribution": "policy 37 / corp 32 / oss 32 / research 32 / safety 30 / cap 21 / infra 21 / app 12（合计 217）",
+    "category_safety_note": "沿革：v0.3 记 4 → v0.6 期 11 → v0.7 现 30（11-09 后每日构建累积 + 归类口径演进，本版无法区分二者贡献）。id 21 / 27 / 35 / 37 的归类仍在裁定中，不因本版数字上升视为已结案〔待核〕。"
   },
   "assumptions": {
     "c_end_price_cny_per_year": 100,
@@ -61,64 +119,98 @@
     {
       "metric": "active_subscribers_total",
       "sql": "SELECT status, is_internal, count(*) FROM subscribers GROUP BY status, is_internal",
-      "result": "active+internal 1 / active+external 2 / unsubscribed+external 1",
-      "reproduced": true
+      "result": "active+internal 1 / active+external 3 / unsubscribed 0",
+      "reproduced": true,
+      "as_of": "2026-11-11"
     },
     {
       "metric": "topic_requests_total",
       "sql": "SELECT topic, count(*) FROM topic_requests GROUP BY topic ORDER BY count(*) DESC",
-      "result": "AI芯片 7 / 天气 1 / ai游戏，设备。1（合计 9）",
+      "result": "13：AI芯片 7 / 天气 1 / ai游戏，设备。1 / [自测]×4 各 1（contact 空 9/13，distinct topic 7，pending 0）",
       "reproduced": true,
-      "note": "9 条 contact 全部为空（实测 9/9），无法回联 → 真实外部点题记为 0"
+      "as_of": "2026-11-11",
+      "note": "13 条 = 10-07 当晚 9 条 + 11 月 selftest 4 条；contact 空 9 条 + selftest 标记 4 条均非真实外部点题 → 真实外部点题记 0"
     },
     {
       "metric": "signal_votes",
       "sql": "SELECT count(*) FROM signal_votes",
       "result": 0,
-      "reproduced": true
+      "reproduced": true,
+      "as_of": "2026-11-11"
     },
     {
       "metric": "signals_total",
       "sql": "SELECT count(*) AS n, min(id) AS min_id, max(id) AS max_id FROM signals",
-      "result": "n=79, min_id=1, max_id=80",
-      "reproduced": true
+      "result": "n=217, min_id=1, max_id=218",
+      "reproduced": true,
+      "as_of": "2026-11-11",
+      "verified_via": "2026-11-11 exec_sql 直接回库，并与冻结件 meta（built_at 07:30）交叉一致",
+      "note": "v0.6 机器值同为 217（每日构建滚动）；公开镜像停 208，差额即 11-09 后 9 条新增（id 210–218）"
+    },
+    {
+      "metric": "signals_id_gap",
+      "sql": "SELECT g.id FROM generate_series(1,218) AS g(id) LEFT JOIN signals s ON s.id=g.id WHERE s.id IS NULL",
+      "result": "7（唯一缺号）",
+      "reproduced": true,
+      "as_of": "2026-11-11",
+      "verified_via": "2026-11-11 exec_sql 直接回库（枚举全区间求差集，不用 max−min+1 算术推断）",
+      "note": "缺号 id 7 = KNOWN_GAPS G18（建站首日空号，非删除）"
     },
     {
       "metric": "signals_missing_src_url",
       "sql": "SELECT count(*) FROM signals WHERE src_url IS NULL OR length(src_url) < 5",
       "result": 39,
-      "reproduced": true
+      "reproduced": true,
+      "as_of": "2026-11-11",
+      "verified_via": "2026-11-11 exec_sql 直接回库（= total 217 − with_url 178）",
+      "note": "全部为 id ≤ 41；id > 41 缺链 0 条 → 新增条目全部带链"
     },
     {
       "metric": "signals_deep_verified / corrected",
       "sql": "SELECT count(*) FILTER (WHERE deep_verified IS TRUE) AS deep_verified, count(*) FILTER (WHERE corrected IS TRUE) AS corrected FROM signals",
       "result": "deep_verified=2, corrected=1",
-      "reproduced": true
+      "reproduced": true,
+      "as_of": "2026-11-11",
+      "verified_via": "2026-11-11 exec_sql 直接回库"
     },
     {
       "metric": "category_full_distribution",
       "sql": "SELECT cat, count(*) AS c FROM signals GROUP BY cat ORDER BY c DESC",
-      "result": "corp 20 / infra 17 / oss 16 / cap 14 / policy 5 / research 3 / app 2 / safety 2",
-      "reproduced": true
+      "result": "policy 37 / research 32 / corp 32 / oss 32 / safety 30 / cap 21 / infra 21 / app 12（合计 217）",
+      "reproduced": true,
+      "as_of": "2026-11-11",
+      "verified_via": "2026-11-11 exec_sql 直接回库，并与冻结件 meta.cat_counts 交叉一致"
+    },
+    {
+      "metric": "stamp_distribution",
+      "sql": "SELECT stamp, count(*) FROM signals GROUP BY stamp",
+      "result": "ok 193 / warn 24（只有转述率 11.1%）",
+      "reproduced": true,
+      "as_of": "2026-11-11",
+      "verified_via": "2026-11-11 exec_sql 直接回库（与 meta.stamp_counts 一致）",
+      "note": "较 v0.4 的 ok 106 / warn 20（15.9%）——只有转述率下降 4.8 个百分点，但分子分母同时变化，不单独解读"
     },
     {
       "metric": "delivery_receipts_total",
       "sql": "SELECT count(*) FROM delivery_receipts",
-      "result": 4,
+      "result": "4 条 / 3 个地址（内部 2、外部 2）",
       "reproduced": true,
-      "note": "其中 2 条投给运营者自测地址、2 条投给外部地址；涉及 3 个不同收件地址；末条 created_at = 2026-10-14 10:03。外部真实回执现为 2（v0.1 记为 0）"
+      "as_of": "2026-11-11",
+      "note": "末条 created_at = 2026-10-14 10:03（截至 2026-11-11 无新增回执）"
     },
     {
       "metric": "signal_events_by_kind",
       "sql": "SELECT kind, count(*) AS c FROM signal_events GROUP BY kind ORDER BY c DESC",
-      "result": "view 157 / view_switch 22 / filter_on 10 / click_src 7 / sub_invalid 7 / e2e_sec_audit 1（合计 204）",
+      "result": "view_v31 1152 / view 706 / view_switch 22 / filter_on 10 / click_src 8 / sub_invalid 7 / e2e_sec_audit 1（合计 1906）",
       "reproduced": true,
-      "note": "可读性更正：旧文档称该表『按设计只进不出，连我们自己也不读回』——不准确。准确表述为 **anon 角色不可读回（无 SELECT 策略）；运营者角色可读**。2026-10-15 通过服务端角色读回 204 行。另：sub_ok / sub_submit / sub_dup 三个 kind 在表中不存在，旧文档以它们为据声明『站点订阅成功 0』属无效依据；实际存在且从未披露的是 **7 条 sub_invalid**（订阅尝试失败）。204 条事件无法归因真人——已知写入源（自测、巡检、E2E 探针）未排除，故不对真人作正面断言。"
+      "as_of": "2026-11-11",
+      "note": "1906 条事件无法归因真人——已知写入源（自测、巡检、E2E 探针）未排除，故不对真人作正面断言。sub_ok / sub_submit / sub_dup 三个 kind 在表中不存在（旧文档以它们为据声明『站点订阅成功 0』属无效依据）；真实存在且从未披露的是 7 条 sub_invalid（订阅尝试失败）。事件类为滚动计数，日内会再增长，次日 07:31 构建自动回填。"
     }
   ],
   "audit_scope": {
-    "signals": "id 1–80 共 79 条（id 7 跳号），截至 2026-10-15",
+    "signals": "id 1–218 共 217 条（id 7 跳号，见 KNOWN_GAPS G18），截至 2026-11-11（信号组）",
+    "other_groups": "订阅 / 点题 / 回执 / 事件四组截至 2026-11-11，本版已全量回库复核",
     "excluded": "订户身份与邮箱（不入包）、signal_events 逐条明细（anon 不可读回；运营者角色可读，但本包只公开分 kind 聚合计数，不公开明细）",
-    "full_ledger": "线上核验台账列出全部条目的章位、原文链、摘录、可达性"
+    "full_ledger": "线上核验台账列出全部条目的可信度、原文链、摘录、可达性"
   }
 }

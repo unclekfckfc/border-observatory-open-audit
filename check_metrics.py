@@ -32,6 +32,9 @@ safety 0→2、top4 95.7%→84.8%、receipts 2→4、events 163→204），**没
 
   python check_metrics.py --actual <actual.json> [--metrics <metrics.json>] [--max-age-days 3]
         执行比对。全部一致 → 退出码 0；存在漂移 → 退出码 1；脚本自身出错 → 退出码 2。
+        比对 = 22 项云端实测（scalars 18 + rows 派生 4）+ 4 项内部一致性
+        （audit_scope↔metrics 数值 / data_as_of==最旧组 / reproduced_at / churn_rate）——
+        后者不查库，只验证 metrics.json 手写字段与机器数字自洽（更正 14/15 教训补丁）。
 
 actual.json 结构
 ----------------

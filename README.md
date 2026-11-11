@@ -35,7 +35,7 @@
 | **[CORRECTIONS.md](CORRECTIONS.md)** 更正 04 | 我们**自己的公开文档**写错了数据 | 看公开后第一个被照出来的是谁 |
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | 怎么挑错、我们承诺怎么处理、不承诺什么 | 想提错先看这个 |
 | **[LICENSE.md](LICENSE.md)** | CC BY 4.0（署名） | 想采用 CTL 看这个 |
-| **[PUBLISH.md](PUBLISH.md)** | GitHub 发布指引（**仓库尚未建立**） | 想看取舍过程 |
+| **[PUBLISH.md](PUBLISH.md)** | GitHub 发布指引（**仓库已上线**，2026-11-11） | 想看取舍过程 |
 | `data/metrics.json` / `ctl.schema.json` | **机器可读**的数字源与标准 schema | 想程序化复用 |
 
 ---
@@ -49,8 +49,8 @@
 3. **标准 CTL 漏了关键情况**——哪些场景这套标注会失效。
 
 **去哪里挑**：
-- **直接回信**：`xvpp2806@agent.qq.com` —— **当前唯一确认可用的通道**
-- 提 issue（本仓库）——⚠️ **截至 2026-10-14 仓库尚未建立**，见 [PUBLISH.md](PUBLISH.md)。我们不会把一个点不开的入口挂在这里冒充可用。
+- **直接回信**：`xvpp2806@agent.qq.com` —— **始终可用的通道**
+- **提 [issue](https://github.com/unclekfckfc/border-observatory-open-audit/issues)**（本仓库）——2026-11-11 上线，**现在可以点开了**（我们不会把点不开的入口挂在这里冒充可用，之前没挂就是因为它点不开）
 - 完整流程、我们的处理承诺与「不承诺什么」：[CONTRIBUTING.md](CONTRIBUTING.md)
 
 **我们承诺**：

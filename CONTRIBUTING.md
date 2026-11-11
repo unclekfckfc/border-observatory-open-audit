@@ -23,8 +23,8 @@
 `xvpp2806@agent.qq.com`
 一句话就够，不用写长。附链接或截图更好，没有也行。
 
-**通道二 · GitHub issue**
-仓库建立后可用（见 `PUBLISH.md`）。**在仓库真正上线前，请以回信为准**——我们不会让一个点不开的入口挂在这里冒充可用。
+**通道二 · GitHub issue**（2026-11-11 上线）
+<https://github.com/unclekfckfc/border-observatory-open-audit/issues>——仓库上线前这里写的是「以回信为准，不挂点不开的入口」，现在入口可以点了。
 
 ## 三、提的时候最好带上什么（不强制）
 

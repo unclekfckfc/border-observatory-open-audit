@@ -261,7 +261,7 @@
 - **教训（写入通则）**
   **一个文件只允许有一个"新鲜度"字段时，它一定会变成谎话。** 多来源数据必须分组标注 as_of；而"构建时不校验日期"等于把诚信交给记忆力——记忆力会失效，构建不会。
 
-- **三步状态**：① 已入档（本条）② 已改原话（metrics.json v0.4、页面两处基准日、巡检脚本）③ **待 deploy 后生效**
+- **三步状态**：① 已入档（本条）② 已改原话（metrics.json v0.4、页面两处基准日、巡检脚本）③ **已生效**（随 2026-10-25 后日构建部署）
 
 ---
 
@@ -273,7 +273,7 @@
 - **依据**：澎湃新闻原句「Kimi K3.1 Pro属于3T级开放权重模型……总参数规模2.8万亿，单次推理活跃参数1040亿」＋凤凰/新浪交叉一致；信号库 id 181（2026-11-05 补采入库）同口径。
 - **教训**：手写页面的数字没有自动校验——同一产品的参数量，页面写 3 万亿、库内写 2.8 万亿，互不察觉。凡对外数字必须回源实测，多处引用同一数字须单一出处（通则 14/22）。
 - **未处置（不掩饰）→ 当日复核已解**：同段「Terminal-Bench 4.0 编程智能体 65.7%」与信号 id 181 的「Vals AI 口径 63.64%」**均属实**——65.7% 是 Moonshot 自测表（Claude Code harness，同表 Opus 5.5=66.4%、GPT-6 Astra=58.2%），63.64% 是 Vals AI 独立实测（mini-swe-agent 三跑均值，Opus=65.15%），另有 Artificial Analysis 读数 67.2%。**同一基准、不同 harness，读数本就不同**；页面两处已补口径标注（厂商自测·Claude Code harness / Vals AI 独立实测），不再并列无出处裸数。
-- **三步状态**：① 已入档（本条）② 已改原话（fields.html + fields_body.html + index.html 三处）③ **待 deploy 后生效**（2026-11-06 07:30 日构建自动部署）
+- **三步状态**：① 已入档（本条）② 已改原话（fields.html + fields_body.html + index.html 三处）③ **已生效**（2026-11-06 07:30 日构建自动部署）
 
 ---
 
@@ -286,4 +286,4 @@
 - **根因**：METRICS.md 自称「数字都应从 metrics.json 生成」实为手填，mk_metrics_patch 只写 JSON 不碰 MD；metrics.json 内 audit_scope / delta / reproduction / churn_rate 等手写字段同样无人回源。**「唯一数字源」只写在声明里，没有写在构建链里。**
 - **根治（已落地）**：mk_metrics_patch --apply 自动刷新 METRICS.md 六锚点 + 页首基准日行（先全量校验匹配数、不符即拒写，fail-loud；.bak 备份；portal+deliverables 双写并校验一致）；手写字段以「需人工复核清单」收尾打印防漏；版本号去硬编码（TARGET_VERSION）。
 - **教训**：镜像凡靠手填必漂；单一数字源必须由构建链兑现，而不是由声明兑现。检测体（check_metrics / 2.14）只能发现漂移，修复体（自动回写镜像）才能结束漂移。
-- **三步状态**：① 已入档（本条）② 已改原话（metrics.json v0.7、METRICS.md 全量刷新、mk_metrics_patch 改造）③ **待 deploy 后生效**
+- **三步状态**：① 已入档（本条）② 已改原话（metrics.json v0.7、METRICS.md 全量刷新、mk_metrics_patch 改造）③ **已生效**（2026-11-11 线上部署 + GitHub 公开仓上线）

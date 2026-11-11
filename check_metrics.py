@@ -214,6 +214,62 @@ def _derive_from_rows(rows):
     return derived
 
 
+def _check_notes_consistency(metrics):
+    """手写字段 ↔ 机器数字的内部一致性（4 项，只读）。
+
+    来历（更正 14/15 教训）：22 项云端比对之外，metrics.json 的手写字段
+    （audit_scope / metric_groups / reproduced_at / churn_rate）曾各自漂移
+    而无人察觉——「126 条」对 217、33% 对 0% 都活了好几天。本组检查不查库，
+    只验证文件内部的自洽性；期望值一律取自 metrics.json 自身，不硬编码数字。
+    """
+    m = metrics.get("metrics", {}) or {}
+    issues = []
+
+    def chk(cond, label, detail):
+        if cond:
+            print("  [OK]    %-34s %s" % (label, detail))
+        else:
+            print("  [DRIFT-N] %-32s %s" % (label, detail))
+            issues.append(label)
+
+    scope = str((metrics.get("audit_scope") or {}).get("signals") or "")
+    total, idmax = m.get("signals_total"), m.get("signals_id_max")
+    chk(total is not None and idmax is not None
+        and str(total) in scope and str(idmax) in scope,
+        "audit_scope.signals↔metrics",
+        "audit_scope 应含 %s 条 / id %s：%s"
+        % (total, idmax, scope[:40] + ("…" if len(scope) > 40 else "")))
+
+    dao = str(metrics.get("data_as_of") or "")
+    groups = [(str(g.get("as_of") or ""), str(g.get("group") or "")) for g in
+              (metrics.get("metric_groups") or [])]
+    if groups and dao:
+        oldest = min(a for a, _ in groups)
+        chk(oldest == dao, "data_as_of==最旧组 as_of",
+            "data_as_of=%s，最旧组=%s（更正 12 口径）" % (dao, oldest))
+    else:
+        chk(False, "data_as_of==最旧组 as_of", "metric_groups 或 data_as_of 缺失")
+
+    chk(str(metrics.get("reproduced_at") or "") == dao,
+        "reproduced_at==data_as_of",
+        "reproduced_at=%s / data_as_of=%s" % (metrics.get("reproduced_at"), dao))
+
+    try:
+        unsub = float(m.get("unsubscribed_external") or 0)
+        active = float(m.get("active_subscribers_total") or 0)
+        expect_pct = (unsub * 100.0 / active) if active else 0.0
+        got = m.get("churn_rate") or ""
+        got_pct = float(str(got).replace("%", "").strip())
+        chk(abs(got_pct - expect_pct) < 0.51,
+            "churn_rate↔退订/在订",
+            "churn_rate=%s，按 %g÷%g 应为 %g%%"
+            % (got, unsub, active, expect_pct))
+    except (TypeError, ValueError):
+        chk(False, "churn_rate↔退订/在订", "churn_rate 无法解析：%r" % (m.get("churn_rate"),))
+
+    return issues
+
+
 def run_check(metrics_path, actual_path, max_age_days):
     metrics = _load_json(metrics_path)
     actual = _load_json(actual_path)
@@ -287,10 +343,17 @@ def run_check(metrics_path, actual_path, max_age_days):
         print("  [CALIBER] snapshot_date=%s 早于 data_as_of=%s：分组基准日自相矛盾"
               % (snap_conflict[1], snap_conflict[0]))
 
+    print("  --- 内部一致性（手写字段回源，4 项）---")
+    note_issues = _check_notes_consistency(metrics)
+
     print("-" * 68)
     if drift:
         print("结论：发现 %d 项漂移 → 公开文档数字已与云端不一致，需人工修 metrics.json"
               % len(drift))
+        return 1
+    if note_issues:
+        print("结论：云端数字一致，但手写字段内部不一致 %d 处（%s）→ 需修 metrics.json"
+              % (len(note_issues), "、".join(note_issues)))
         return 1
     if snap_conflict:
         print("结论：数字一致，但分组基准日矛盾，需先修 snapshot_date / data_as_of")

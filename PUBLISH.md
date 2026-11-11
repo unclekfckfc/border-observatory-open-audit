@@ -77,6 +77,18 @@ cd C:\Users\Kc\oa-publish
 
 ---
 
+## 发布后维护链（2026-11-11 定，GitHub 上线后）
+
+后续每次内容更新（v0.8+）的标准动线：
+
+1. **改母版** `deliverables/open-audit/`（唯一真相源）；
+2. **同步** 到 `portal/open-audit/` 与 `C:\Users\Kc\oa-publish`（跑 `_publish_prep.py` 顺带做漂移检查），三副本 md5 对齐；
+3. **推 GitHub**：`git -C C:/Users/Kc/oa-publish add -A && git commit && git push`（认证一次即可长期有效；若 push 报凭据弹窗，跑 `gh auth setup-git` 接管）；
+4. **线上站**：日常由 07:30 自动化部署（每天自动带上）；紧急改动可手动部署 `portal` 目录（须运营者点头，覆盖式、链接不变）；
+5. **验证**：curl 线上 + `gh api` 远端 + 本地 md5 三方各核一眼——判线上状态一律以 curl 为准，不靠机制记忆。
+
+---
+
 ## 如果暂时不发布
 
 母版本地可用，不影响其他工作。**不要为了"发布"而发布**——内容质量与脱敏比发布动作本身更重要。

@@ -1,7 +1,7 @@
 # 发布指引（GitHub）
 
 > **当前状态（2026-11-11 更新）**
-> - ✅ **线上公开审计页已上线**：https://ai-subject-universe.app.workbuddy.host/open-audit/
+> - ✅ **线上公开审计页已上线**：https://ai-subject-universe.app.workbuddy.host/open-audit/?sharecode=LA4PX3544L
 >   （curl 核对：HTTP 200、title 正确、含新数字；**主站 title 与内容未受影响**）
 >   ✅ 页内「12 条 → 15 条」的口径修正**已随 2026-11-11 部署窗口上线**（curl 实证「完整 15 条见母版」在页；此前留待窗口是为了不为一行字单冒覆盖主站的风险）
 > - ✅ **GitHub 公开仓库已上线**：https://github.com/unclekfckfc/border-observatory-open-audit（2026-11-11 设备码授权后建仓推送，完整 commit 历史）

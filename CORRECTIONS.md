@@ -303,3 +303,16 @@
 - **冻结口径裁决（治理要点）**：ledger 原文为「冻结、**不再补录**——补录的时间成本远高于信息增量，而删掉或改写历史等于伪造台账」。裁决：该冻结约束的是**补录来源**与**删改事实内容**；**归类标签纠错不受其限**——不删条目、不改任何事实字段（hook/src/take 原文未动），属「错了公开改」的正业，以本条更正留档为合规前提。此前把该声明转述为「不删不改」是转述过宽，一并修正。
 - **教训**：「待裁定」不等于「不可裁」——悬置近一月的四项，回库逐条读完内容后 10 分钟即有结论。凡标〔待核〕的事项应配一个到期强制裁定的时点，否则它会以「谨慎」之名无限期存活。
 - **三步状态**：① 已入档（本条）② 已改原话（DB 改判 4 条 + METRICS/KNOWN_GAPS/metrics.json 待核声明结案 + ledger 口径澄清）③ 计数随 11-12 晨构建生效，文档随其自动部署上线
+
+---
+
+## 更正 16 · 2026-11-16 · metrics.json 分类增量手填漂移（app 8→2）+ audit-counts.js 停更 20 天：公开数字手填再失守
+
+- **归类**：治理类（公开数字手填漂移），更正 14 同族复发；附带生成器缺失根治。
+- **触发**：2026-11-16 清账（C3-④「metrics 分类增量注记」）逐条回源核对：delta_since_previous.signals_added_by_category 分项合计 15 ≠ signals_added 9；同日另发现 audit-counts.js 自 2026-10-27 停更，首页公开计数滞后 20 天。
+- **改前原值**：① metrics.json delta 块 `app: 8`（分项 safety1/policy2/research2/infra0/cap0/oss1/corp1/app8 合计 15），note 自注「分类增量……属〔待核〕」；② audit-counts.js `corrections=12 / known_gaps=17 / ledger_rows=126`（generated_at 2026-10-27 17:54）。
+- **改后**：① `app: 2`——逐条核对 id 210–218 冻结件分类（corp 1 / app 2 / research 2 / policy 2 / safety 1 / oss 1，合计 9，与 signals_added 一致），〔待核〕关闭，note 留档改前原值；② audit-counts.js 恢复按 CORRECTIONS.md / KNOWN_GAPS.md 实数生成：`corrections=16 / known_gaps=18 / ledger_rows=242`（G1–G18；10-27 停更时为 17，10-30 新增 G18 后生成器缺席未再生）。
+- **根因**：分类增量为手填字段且自带「未复核」标记却无到期强制裁定；audit-counts.js 自称「由构建脚本生成」但生成器不在构建链（仅 restamp 改版本戳）——「单一数字源」第三次只写在声明里，未写在构建链里（更正 14 教训同型复发）。
+- **根治（已落地）**：分类增量逐条回源核对写回；audit-counts.js 生成器恢复（批 1 脚本 sync_fix.py，**待办：并入 run_morning 构建链**）；llms-full.txt 三处口径同步（194→242 条 / 编号 0244 / 更正数 16）。
+- **教训**：手填数字必漂；凡带〔待核〕的公开字段必须配到期强制裁定时点（更正 15 教训重申）。
+- **三步状态**：① 已入档（本条）② 已改原话（metrics.json delta 块 + audit-counts.js 重生成 + llms-full 口径）③ GitHub 公开仓 2026-11-16 推送；站点随 11-17 晨 07:30 自动部署生效
